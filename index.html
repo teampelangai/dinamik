@@ -187,23 +187,21 @@
    // Listener Real-time
     function listenToRealtime() {
       db.channel('public:relief_schedules')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'relief_schedules' }, (payload) => {
-          // Setiap kali ada DATA BARU masuk ke Supabase, hantar local notification!
-          triggerLocalNotification(
-            "📢 JADUAL RELIEF BAHARU", 
-            "Jadual relief telah dikemaskini. Sila semak tugasan anda!"
-          );
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'relief_schedules' }, (payload) => {
+          // Hanya hantar notifikasi jika ada rekod BAHARU dimasukkan (INSERT)
+          if (payload.eventType === 'INSERT') {
+            triggerLocalNotification(
+              "📢 JADUAL RELIEF BAHARU", 
+              "Jadual relief telah dikemaskini. Sila semak tugasan anda!"
+            );
+          }
+          // Kemaskini paparan data di skrin secara automatik
           fetchCloudData();
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'relief_schedules' }, (payload) => {
-          fetchCloudData();
-        })
-        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'relief_schedules' }, (payload) => {
-          fetchCloudData();
-        })
-        .subscribe();
+        .subscribe((status) => {
+          console.log("Status Realtime Supabase:", status);
+        });
     }
-
     function saveSchoolName() {
       const val = document.getElementById('schoolNameInput').value.trim();
       if(val) {
@@ -265,7 +263,7 @@
       }
     }
 
-    function triggerLocalNotification(title, body) {
+   function triggerLocalNotification(title, body) {
       if ('serviceWorker' in navigator && 'Notification' in window) {
         if (Notification.permission === 'granted') {
           navigator.serviceWorker.ready.then(registration => {
@@ -273,7 +271,7 @@
               body: body,
               icon: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png',
               vibrate: [200, 100, 200],
-              tag: 'e-relief-notification'
+              tag: 'e-relief-' + Date.now() // Tag unik berasaskan timestamp
             });
           });
         }
