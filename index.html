@@ -217,29 +217,57 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-    function requestNotificationPermission() {
-      if ('Notification' in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            alert("✅ Notifikasi diaktifkan!");
-            triggerLocalNotification("E-Relief", "Notifikasi sedia digunakan.");
-          }
-        });
+   async function requestNotificationPermission() {
+      // 1. Semak jika pelayar/browser menyokong Notifikasi & Service Worker
+      if (!('Notification' in window)) {
+        alert("Ralat: Pelayar/Browser ini tidak menyokong fungsi Notifikasi.");
+        return;
+      }
+
+      if (!('serviceWorker' in navigator)) {
+        alert("Ralat: Service Worker tidak disokong atau belum aktif pada pelayar ini.");
+        return;
+      }
+
+      // 2. Semak jika pernah menolak (Block) kebenaran sebelum ini
+      if (Notification.permission === 'denied') {
+        alert("❌ Peringatan: Akses notifikasi telah DIBLOK sebelum ini.\n\nSila benarkan (Allow) notifikasi secara manual menerusi tetapan ikon 'Mangga/Kunci' di sebelah URL di bahagian atas browser anda.");
+        return;
+      }
+
+      try {
+        // 3. Minta kebenaran daripada pengguna
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+          alert("✅ Notifikasi berjaya diaktifkan!");
+          // Hantar Ujian Notifikasi
+          triggerLocalNotification("E-Relief System", "Notifikasi sedia digunakan!");
+        } else if (permission === 'denied') {
+          alert("❌ Akses notifikasi ditolak/diblok.");
+        } else {
+          alert("⚠️ Kebenaran notifikasi dibatalkan.");
+        }
+      } catch (error) {
+        console.error("Ralat Notifikasi:", error);
+        alert("Ralat: " + error.message);
       }
     }
 
     function triggerLocalNotification(title, body) {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.showNotification(title, {
-            body: body,
-            icon: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png',
-            vibrate: [200, 100, 200]
+      if ('serviceWorker' in navigator && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, {
+              body: body,
+              icon: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png',
+              vibrate: [200, 100, 200],
+              tag: 'e-relief-notification'
+            });
           });
-        });
+        }
       }
     }
-
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
       document.getElementById('viewMobile').classList.add('hidden');
