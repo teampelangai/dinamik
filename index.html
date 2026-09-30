@@ -184,34 +184,40 @@
       }
     }
 
-  let realtimeChannel = null; // Pembolehubah global untuk mengawal saluran Supabase
+    let realtimeChannel = null;
+    let notificationTimeout = null;
 
+    // Listener Real-time dengan fungsi Debounce (Elak Spam/Throttling Browser)
     function listenToRealtime() {
-      // Jika saluran lama sudah wujud, tutup dulu supaya tidak bertindih!
       if (realtimeChannel) {
         db.removeChannel(realtimeChannel);
       }
 
       realtimeChannel = db.channel('public:relief_schedules')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'relief_schedules' }, (payload) => {
-          console.log("Data baharu dimasukkan:", payload);
+          console.log("Data baharu dikesan:", payload);
           
-          // Hantar notifikasi yang stabil
-          triggerLocalNotification(
-            "📢 JADUAL RELIEF BAHARU", 
-            "Jadual relief telah dikemaskini. Sila semak tugasan anda!"
-          );
+          // Batalkan timernotifikasi sebelumnya jika data masih bertubi-tubi masuk
+          clearTimeout(notificationTimeout);
           
+          // Kumpul semua data dan hantar HANYA 1 notifikasi ringkasan selepas 1 saat
+          notificationTimeout = setTimeout(() => {
+            triggerLocalNotification(
+              "📢 JADUAL RELIEF BAHARU", 
+              "Jadual relief harian telah dikemaskini. Sila semak tugasan anda!"
+            );
+          }, 1000);
+
           fetchCloudData();
         })
-        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'relief_schedules' }, (payload) => {
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'relief_schedules' }, () => {
           fetchCloudData();
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'relief_schedules' }, (payload) => {
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'relief_schedules' }, () => {
           fetchCloudData();
         })
         .subscribe((status) => {
-          console.log("Status Realtime:", status);
+          console.log("Status Realtime Supabase:", status);
         });
     }
     function saveSchoolName() {
@@ -275,7 +281,8 @@
       }
     }
 
-  function triggerLocalNotification(title, body) {
+    // Fungsi Notifikasi yang Diperkemas
+    function triggerLocalNotification(title, body) {
       if ('serviceWorker' in navigator && 'Notification' in window) {
         if (Notification.permission === 'granted') {
           navigator.serviceWorker.ready.then(registration => {
@@ -284,14 +291,14 @@
               icon: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png',
               badge: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png',
               vibrate: [200, 100, 200],
-              // Tag unik memastikan pelayar tidak menyekat notifikasi berulang
               tag: 'e-relief-notif-' + Date.now(),
               renotify: true
             });
-          });
+          }).catch(err => console.error("Error ServiceWorker Notification:", err));
         }
       }
     }
+	
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
       document.getElementById('viewMobile').classList.add('hidden');
