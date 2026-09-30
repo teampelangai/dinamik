@@ -184,10 +184,21 @@
       }
     }
 
-    // Listener Real-time
+   // Listener Real-time
     function listenToRealtime() {
       db.channel('public:relief_schedules')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'relief_schedules' }, () => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'relief_schedules' }, (payload) => {
+          // Setiap kali ada DATA BARU masuk ke Supabase, hantar local notification!
+          triggerLocalNotification(
+            "📢 JADUAL RELIEF BAHARU", 
+            "Jadual relief telah dikemaskini. Sila semak tugasan anda!"
+          );
+          fetchCloudData();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'relief_schedules' }, (payload) => {
+          fetchCloudData();
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'relief_schedules' }, (payload) => {
           fetchCloudData();
         })
         .subscribe();
@@ -366,9 +377,8 @@
           await db.from('relief_schedules').delete().gt('id', 0);
           const { error } = await db.from('relief_schedules').insert(parsedData);
 
-          if (!error) {
+         if (!error) {
             statusDiv.textContent = `Berjaya! ${parsedData.length} data dihantar ke Cloud.`;
-            triggerLocalNotification("📢 E-Relief", `Jadual Relief Baharu: ${parsedData.length} waktu ganti wujud.`);
             fetchCloudData();
             switchTab('tv');
           } else {
