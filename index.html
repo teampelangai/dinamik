@@ -10,21 +10,21 @@
   <meta name="theme-color" content="#2563eb">
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Pustaka SheetJS (membaca Excel) & PDF.js -->
+  <!-- Pustaka double/multi: SheetJS & Supabase JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
 
-  <!-- ================= NAV BAR TAB ================= -->
+  <!-- ================= NAV BAR ================= -->
   <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center bg-slate-800 border border-slate-700 p-4 rounded-2xl mb-6 shadow-xl gap-4">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl text-white">⚡</div>
       <div>
         <h1 class="text-xl font-extrabold text-white">E-RELIEF <span id="displaySchoolName" class="text-blue-400 font-normal text-sm">| SK...</span></h1>
-        <p class="text-xs text-slate-400">Sistem Pengesahan Relief Digital</p>
+        <p class="text-xs text-slate-400">Sistem Pengesahan eyebisnis/Relief Digital (Cloud)</p>
       </div>
     </div>
 
@@ -75,7 +75,6 @@
 
     <!-- ================= TAB 2: PORTAL CIKGU / MOBILE ================= -->
     <div id="viewMobile" class="hidden max-w-md mx-auto space-y-6">
-      
       <!-- Banner Kebenaran Notifikasi PWA -->
       <div class="bg-blue-600/20 border border-blue-500/40 p-4 rounded-2xl text-center space-y-2">
         <p class="text-xs text-blue-300 font-semibold">Dapatkan push-notification terus ke skrin hp anda apabila ada jadual relief harian.</p>
@@ -100,7 +99,7 @@
       <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl space-y-3">
         <h2 class="text-sm font-bold text-white">⚙️ Tetapan Nama Sekolah / Organisasi</h2>
         <div class="flex gap-2">
-          <input type="text" id="schoolNameInput" placeholder="Contoh: SK Seri Murni / SK... " class="flex-1 bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-sm">
+          <input type="text" id="schoolNameInput" placeholder="Contoh: SK Seri Murni" class="flex-1 bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-sm">
           <button type="button" onclick="saveSchoolName()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 text-xs font-bold rounded-xl">Simpan</button>
         </div>
       </div>
@@ -111,27 +110,23 @@
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-white flex items-center gap-2">📂 1. Muat Naik Fail (Penggantian.xlsx)</h2>
             <button type="button" onclick="clearAllData()" class="bg-rose-600/20 text-rose-400 border border-rose-600/40 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
-              🧹 Padam Semua Data
+              🧹 Padam Semua Data (Cloud)
             </button>
           </div>
-          <p class="text-xs text-slate-400">Gunakan fail <b>Penggantian.xlsx</b> hasil export aSc Substitutions.</p>
+          <p class="text-xs text-slate-400">Gunakan fail <b>Penggantian.xlsx</b> hasil export aSc. Hantar terus ke pangkalan data Awan.</p>
           <div class="flex flex-col md:flex-row items-center gap-3">
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.html,.htm,.csv" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-            <button type="button" onclick="processUploadedFile()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition whitespace-nowrap cursor-pointer">
-              🚀 Process & Publish
+            <input type="file" id="fileInput" accept=".xlsx,.xls" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-7000" />
+            <button type="button" onclick="processUploadedFile()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition">
+              🚀 Process & Sync
             </button>
           </div>
           <div id="adminStatus" class="text-xs font-medium text-emerald-400"></div>
         </div>
 
-        <!-- JADUAL SUNTING (EDITABLE TABLE) -->
+        <!-- JADUAL SUNTING -->
         <div class="space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-white">✏️ 2. Suntingan Manual (Admin)</h3>
-            <div class="flex gap-2">
-              <button type="button" onclick="addNewRow()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">➕ Tambah</button>
-              <button type="button" onclick="saveAdminChanges()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-lg shadow-emerald-600/30">💾 Simpan</button>
-            </div>
+            <h3 class="text-sm font-bold text-white">✏️ 2. Live Data di Pangkalan Data (Cloud)</h3>
           </div>
 
           <div class="overflow-x-auto border border-slate-700 rounded-xl">
@@ -143,7 +138,7 @@
                   <th class="py-3 px-3">Kelas</th>
                   <th class="py-3 px-3">Subjek</th>
                   <th class="py-3 px-3">Guru Ganti</th>
-                  <th class="py-3 px-3 text-center">Tindakan</th>
+                  <th class="py-3 px-3 text-center">Status</th>
                 </tr>
               </thead>
               <tbody id="adminTableBody" class="divide-y divide-slate-700/50 text-xs">
@@ -157,13 +152,46 @@
   </main>
 
   <script>
-    let reliefDatabase = JSON.parse(localStorage.getItem('PELANGAI_RELIEF_DATA')) || [];
+    //=== 1. KONFIGURASI SUPABASE (Suda dimasukkan kunci rasmi anda) ===
+    const SUPABASE_URL = 'https://jzqirxombshcmbatbmso.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6cWlyeG9tYnNoY21iYXRibXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzI0MDEsImV4cCI6MjEwNjM0ODQwMX0.MXAlafZGrBOjRMYCqWU4lVO2mYf6Au0kktiQOLlcO68';
+    
+    // Inisialisasi Klien Supabase
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let reliefDatabase = [];
     let currentSchool = localStorage.getItem('ERELIEF_SCHOOL_NAME') || 'Nama Sekolah';
 
-    // Inisialisasi Nama Sekolah
-    document.addEventListener('DOMContentLoaded', () => {
+    // Inisialisasi & Realtime listener
+    document.addEventListener('DOMContentLoaded', async () => {
       updateSchoolDisplay();
+      await fetchCloudData();
+      listenToRealtime();
     });
+
+    // Ambil data rendering dari Supabase
+    async function fetchCloudData() {
+      const { data, error } = await db.from('relief_schedules').select('*').order('id', { ascending: true });
+      if (error) {
+        console.error("Error fetching data:", error);
+      } else {
+        reliefDatabase = data || [];
+        renderTvDashboard();
+        populateTeacherDropdown();
+        renderMobileCard();
+        renderAdminEditor();
+      }
+    }
+
+    // Listener Real-time
+    function listenToRealtime() {
+      db.channel('public:relief_schedules')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'relief_schedules' }, () => {
+          fetchCloudData();
+        })
+        .subscribe();
+    }
 
     function saveSchoolName() {
       const val = document.getElementById('schoolNameInput').value.trim();
@@ -237,13 +265,15 @@
       }
     }
 
-    function clearAllData() {
-      if (confirm("Adakah anda pasti untuk memadam semua data relief?")) {
-        reliefDatabase = [];
-        localStorage.removeItem('PELANGAI_RELIEF_DATA');
-        renderAdminEditor();
-        renderTvDashboard();
-        document.getElementById('adminStatus').textContent = "Semua data telah dibersihkan!";
+    async function clearAllData() {
+      if (confirm("Adakah anda pasti mahu memadam SEMUA data di Cloud (Database)?")) {
+        const { error } = await db.from('relief_schedules').delete().gt('id', 0);
+        if (!error) {
+          document.getElementById('adminStatus').textContent = "Semua data berjaya dipadamkan daripada Cloud!";
+          fetchCloudData();
+        } else {
+          alert("Gagal memadam data: " + error.message);
+        }
       }
     }
 
@@ -251,92 +281,72 @@
       const input = document.getElementById('fileInput');
       const statusDiv = document.getElementById('adminStatus');
       if (!input.files[0]) {
-        alert("Sila pilih fail terlebih dahulu!");
+        alert("Sila pilih fail .xlsx formally!");
         return;
       }
 
       const file = input.files[0];
-      const fileName = file.name.toLowerCase();
+      statusDiv.textContent = "Membaca & Memproses .XLSX...";
 
-      statusDiv.textContent = "Sedang memproses fail...";
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames.includes('Penggantian') ? 'Penggantian' : workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-        const arrayBuffer = await file.arrayBuffer();
-        parseExcelFile(arrayBuffer);
-      } else if (fileName.endsWith('.html') || fileName.endsWith('.htm')) {
-        const text = await file.text();
-        parseHtmlExport(text);
-      } else if (fileName.endsWith('.csv')) {
-        const text = await file.text();
-        parseCsvExport(text);
-      } else {
-        alert("Sila muat naik fail .xlsx, .xls, .html atau .csv");
+      let parsedData = [];
+      let headerRowIndex = -1;
+
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i] && rows[i].some(cell => String(cell).trim() === 'Guru' || String(cell).trim() === 'Gantian')) {
+          headerRowIndex = i;
+          break;
+        }
       }
-    }
 
-    function parseExcelFile(arrayBuffer) {
-      try {
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheetName = workbook.SheetNames.includes('Penggantian') ? 'Penggantian' : workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      if (headerRowIndex !== -1) {
+        const headers = rows[headerRowIndex].map(h => String(h).trim());
+        const guruIdx = headers.indexOf('Guru');
+        const alasanIdx = headers.indexOf('Alasan');
+        const waktuIdx = headers.indexOf('Waktu');
+        const subjekIdx = headers.indexOf('Subjek');
+        const kelasIdx = headers.indexOf('Kelas');
+        const gantianIdx = headers.indexOf('Gantian');
 
-        let results = [];
-        let headerRowIndex = -1;
+        for (let r = headerRowIndex + 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (row && row[waktuIdx] !== undefined && row[waktuIdx] !== null && String(row[waktuIdx]).trim() !== '') {
+            let wNum = String(row[waktuIdx]).trim();
+            let alsn = strVal(row[alasanIdx]);
+            if (alsn.includes("CUTI TANPA REKOD")) alsn = "CTR";
 
-        for (let i = 0; i < rows.length; i++) {
-          if (rows[i] && rows[i].some(cell => String(cell).trim() === 'Guru' || String(cell).trim() === 'Gantian')) {
-            headerRowIndex = i;
-            break;
+            parsedData.push({
+              waktu: `Waktu ${wNum}`,
+              guru_cuti: strVal(row[guruIdx]),
+              alasan: alsn || "CTR",
+              kelas: strVal(row[kelasIdx]),
+              subjek: strVal(row[subjekIdx]),
+              guru_ganti: strVal(row[gantianIdx]),
+              status: "Pending",
+              confirmed_time: ""
+            });
           }
         }
 
-        if (headerRowIndex !== -1) {
-          const headers = rows[headerRowIndex].map(h => String(h).trim());
-          const guruIdx = headers.indexOf('Guru');
-          const alasanIdx = headers.indexOf('Alasan');
-          const waktuIdx = headers.indexOf('Waktu');
-          const subjekIdx = headers.indexOf('Subjek');
-          const kelasIdx = headers.indexOf('Kelas');
-          const gantianIdx = headers.indexOf('Gantian');
+        if (parsedData.length > 0) {
+          // Reset data di database dan simpan yang baru
+          await db.from('relief_schedules').delete().gt('id', 0);
+          const { error } = await db.from('relief_schedules').insert(parsedData);
 
-          for (let r = headerRowIndex + 1; r < rows.length; r++) {
-            const row = rows[r];
-            if (row && row[waktuIdx] !== undefined && row[waktuIdx] !== null && String(row[waktuIdx]).trim() !== '') {
-              let wNum = String(row[waktuIdx]).trim();
-              let alasanTxt = strVal(row[alasanIdx]);
-              if (alasanTxt.includes("CUTI TANPA REKOD")) alasanTxt = "CTR";
-
-              results.push({
-                id: Date.now() + r,
-                waktu: `Waktu ${wNum}`,
-                guruCuti: strVal(row[guruIdx]),
-                alasan: alasanTxt || "CTR",
-                kelas: strVal(row[kelasIdx]),
-                subjek: strVal(row[subjekIdx]),
-                guruGanti: strVal(row[gantianIdx]),
-                status: "Pending",
-                confirmedTime: null
-              });
-            }
+          if (!error) {
+            statusDiv.textContent = `Berjaya! ${parsedData.length} data dihantar ke Cloud.`;
+            triggerLocalNotification("📢 E-Relief", `Jadual Relief Baharu: ${parsedData.length} waktu ganti wujud.`);
+            fetchCloudData();
+            switchTab('tv');
+          } else {
+            alert("Ralat memuat naik ke Cloud: " + error.message);
           }
         }
-
-        if (results.length > 0) {
-          reliefDatabase = results;
-          localStorage.setItem('PELANGAI_RELIEF_DATA', JSON.stringify(reliefDatabase));
-          document.getElementById('adminStatus').textContent = `Berjaya! ${results.length} jadual ganti diekstrak dari Excel!`;
-          
-          // HANTAR NOTIFIKASI TELEFON AUTOMATIK
-          triggerLocalNotification("📢 E-Relief", `Jadual Relief Baharu: ${results.length} waktu ganti telah dikemaskini.`);
-
-          renderAdminEditor();
-          switchTab('tv');
-        } else {
-          alert("Gagal membaca struktur Excel.");
-        }
-      } catch (err) {
-        alert("Ralat membaca Excel: " + err.message);
       }
     }
 
@@ -344,124 +354,27 @@
       return v !== undefined && v !== null ? String(v).trim() : "-";
     }
 
-    function parseHtmlExport(htmlContent) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const trs = doc.querySelectorAll('tr');
-
-      let results = [];
-      trs.forEach((tr, idx) => {
-        const tds = tr.querySelectorAll('td, th');
-        if (tds.length >= 5) {
-          let col0 = tds[0].textContent.trim();
-          let col1 = tds[1].textContent.trim();
-          let timeMatch = col1.match(/(\d+)/) || col0.match(/(\d+)/);
-          if (timeMatch && !col1.includes("Waktu")) {
-            results.push({
-              id: Date.now() + idx,
-              waktu: `Waktu ${timeMatch[1]}`,
-              guruCuti: tds[0].textContent.trim() || "-",
-              alasan: tds[2].textContent.trim() || "CTR",
-              subjek: tds[3].textContent.trim() || "MT",
-              kelas: tds[4].textContent.trim() || "-",
-              guruGanti: tds[5] ? tds[5].textContent.trim() : "-",
-              status: "Pending",
-              confirmedTime: null
-            });
-          }
-        }
-      });
-
-      if (results.length > 0) {
-        reliefDatabase = results;
-        localStorage.setItem('PELANGAI_RELIEF_DATA', JSON.stringify(reliefDatabase));
-        document.getElementById('adminStatus').textContent = `Berjaya! ${results.length} jadual ganti diekstrak dari HTML.`;
-        renderAdminEditor();
-        switchTab('tv');
-      }
-    }
-
-    function parseCsvExport(csvText) {
-      let lines = csvText.split('\n');
-      let results = [];
-      lines.forEach((line, idx) => {
-        let cols = line.split(/[,;\t]/).map(c => c.replace(/"/g, '').trim());
-        if (cols.length >= 5 && /\d+/.test(cols[2])) {
-          results.push({
-            id: Date.now() + idx,
-            waktu: `Waktu ${cols[2]}`,
-            guruCuti: cols[0] || "-",
-            alasan: cols[1] || "CTR",
-            subjek: cols[3] || "-",
-            kelas: cols[4] || "-",
-            guruGanti: cols[6] || cols[5] || "-",
-            status: "Pending",
-            confirmedTime: null
-          });
-        }
-      });
-
-      if (results.length > 0) {
-        reliefDatabase = results;
-        localStorage.setItem('PELANGAI_RELIEF_DATA', JSON.stringify(reliefDatabase));
-        document.getElementById('adminStatus').textContent = `Berjaya! ${results.length} jadual ganti diekstrak dari CSV.`;
-        renderAdminEditor();
-        switchTab('tv');
-      }
-    }
-
     function renderAdminEditor() {
       const tbody = document.getElementById('adminTableBody');
       tbody.innerHTML = "";
 
       if(reliefDatabase.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">Tiada rekod. Sila muat naik fail Excel Penggantian.xlsx di atas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">Tiada rekod wujud di Cloud. Sila muat naik.</td></tr>`;
         return;
       }
 
-      reliefDatabase.forEach((item, index) => {
+      reliefDatabase.forEach((item) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="p-2"><input type="text" value="${item.waktu}" onchange="updateRowData(${index}, 'waktu', this.value)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded text-white text-xs"></td>
-          <td class="p-2"><input type="text" value="${item.guruCuti}" onchange="updateRowData(${index}, 'guruCuti', this.value)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded text-white text-xs"></td>
-          <td class="p-2"><input type="text" value="${item.kelas}" onchange="updateRowData(${index}, 'kelas', this.value)" class="w-28 bg-slate-900 border border-slate-700 p-2 rounded text-white text-xs"></td>
-          <td class="p-2"><input type="text" value="${item.subjek}" onchange="updateRowData(${index}, 'subjek', this.value)" class="w-20 bg-slate-900 border border-slate-700 p-2 rounded text-white text-xs"></td>
-          <td class="p-2"><input type="text" value="${item.guruGanti}" onchange="updateRowData(${index}, 'guruGanti', this.value)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded text-white text-xs"></td>
-          <td class="p-2 text-center"><button type="button" onclick="deleteRow(${index})" class="bg-rose-600/20 text-rose-400 border border-rose-600/30 px-2 py-1 rounded hover:bg-rose-600 hover:text-white transition">🗑️</button></td>
+          <td class="p-3">${item.waktu}</td>
+          <td class="p-3">${item.guru_cuti}</td>
+          <td class="p-3">${item.kelas}</td>
+          <td class="p-3">${item.subjek}</td>
+          <td class="p-3">${item.guru_ganti}</td>
+          <td class="p-3 text-center">${item.status}</td>
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    function updateRowData(index, key, value) {
-      reliefDatabase[index][key] = value;
-    }
-
-    function addNewRow() {
-      reliefDatabase.push({
-        id: Date.now(),
-        waktu: "Waktu 1",
-        alasan: "CTR",
-        subjek: "BM",
-        kelas: "1 K",
-        guruCuti: "EN AZMI BIN ISMAIL",
-        guruGanti: "EN MOHAMAD HANIF BIN AHMAD",
-        status: "Pending",
-        confirmedTime: null
-      });
-      renderAdminEditor();
-    }
-
-    function deleteRow(index) {
-      reliefDatabase.splice(index, 1);
-      renderAdminEditor();
-    }
-
-    function saveAdminChanges() {
-      localStorage.setItem('PELANGAI_RELIEF_DATA', JSON.stringify(reliefDatabase));
-      triggerLocalNotification("📢 E-Relief", "Kemaskini Manual: Jadual relief telah dikemaskini oleh Admin.");
-      alert("✅ Jadual Relief telah berjaya dikemaskini!");
-      switchTab('tv');
     }
 
     function renderTvDashboard() {
@@ -469,7 +382,7 @@
       tbody.innerHTML = "";
 
       if(reliefDatabase.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500">Tiada data relief. Sila muat naik fail Excel di tab Admin.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500">Tiada data. Buka Admin Panel untuk muat naik.</td></tr>`;
         return;
       }
 
@@ -482,13 +395,13 @@
         tr.className = item.status === "Confirmed" ? "hover:bg-slate-700/30" : "bg-amber-500/5 hover:bg-amber-500/10";
         tr.innerHTML = `
           <td class="py-4 px-6 font-bold text-blue-400">${item.waktu}</td>
-          <td class="py-4 px-6 text-slate-300 font-semibold">${item.guruCuti} <span class="text-xs text-slate-500 block">(${item.alasan})</span></td>
+          <td class="py-4 px-6 text-slate-300 font-semibold">${item.guru_cuti} <span class="text-xs text-slate-500 block">(${item.alasan})</span></td>
           <td class="py-4 px-6 font-bold text-white">${item.kelas}</td>
           <td class="py-4 px-6"><span class="px-2.5 py-1 bg-slate-700 text-slate-200 rounded text-xs font-bold">${item.subjek}</span></td>
-          <td class="py-4 px-6 font-bold ${item.status === 'Confirmed' ? 'text-emerald-300' : 'text-amber-300'}">${item.guruGanti}</td>
+          <td class="py-4 px-6 font-bold ${item.status === 'Confirmed' ? 'text-emerald-300' : 'text-amber-300'}">${item.guru_ganti}</td>
           <td class="py-4 px-6 text-center">
             ${item.status === 'Confirmed' 
-              ? `<span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold">✓ Disahkan (${item.confirmedTime})</span>`
+              ? `<span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold">✓ Disahkan (${item.confirmed_time})</span>`
               : `<span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold">⏳ Belum Sah</span>`}
           </td>
         `;
@@ -505,7 +418,7 @@
       const select = document.getElementById('teacherSelect');
       select.innerHTML = `<option value="">-- Pilih Nama Cikgu --</option>`;
       
-      let teachers = [...new Set(reliefDatabase.map(d => d.guruGanti))];
+      let teachers = [...new Set(reliefDatabase.map(d => d.guru_ganti))];
       teachers.forEach(t => {
         if(t && t !== "Perlu Ditanda" && t !== "-") {
           select.innerHTML += `<option value="${t}">${t}</option>`;
@@ -523,7 +436,7 @@
         return;
       }
 
-      let teacherItems = reliefDatabase.filter(d => d.guruGanti === selectedTeacher);
+      let teacherItems = reliefDatabase.filter(d => d.guru_ganti === selectedTeacher);
 
       if(teacherItems.length === 0) {
         container.innerHTML = `<div class="text-center text-emerald-400 text-sm py-6 bg-slate-800 rounded-2xl border border-slate-700">🎉 Tiada jadual relief untuk anda hari ini!</div>`;
@@ -541,31 +454,33 @@
           </div>
           <div>
             <div class="text-lg font-black text-white">Subjek: ${item.subjek}</div>
-            <div class="text-xs text-slate-400">Guru Diganti: ${item.guruCuti} (${item.alasan})</div>
+            <div class="text-xs text-slate-400">Guru Diganti: ${item.guru_cuti} (${item.alasan})</div>
           </div>
           <button onclick="confirmRelief(${item.id})" ${isConfirmed ? 'disabled' : ''} 
             class="w-full py-3 rounded-xl font-bold transition flex justify-center items-center gap-2 ${isConfirmed ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'}">
-            ${isConfirmed ? `✓ Telah Disahkan (${item.confirmedTime})` : '🟢 SAHKAN TERIMA JADUAL'}
+            ${isConfirmed ? `✓ Telah Disahkan (${item.confirmed_time})` : '🟢 SAHKAN TERIMA JADUAL'}
           </button>
         `;
         container.appendChild(card);
       });
     }
 
-    function confirmRelief(id) {
-      let item = reliefDatabase.find(d => d.id === id);
-      if(item) {
-        const now = new Date();
-        item.status = "Confirmed";
-        item.confirmedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        localStorage.setItem('PELANGAI_RELIEF_DATA', JSON.stringify(reliefDatabase));
-        renderMobileCard();
-        renderTvDashboard();
+    async function confirmRelief(id) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Update terus ke Supabase
+      const { error } = await db
+        .from('relief_schedules')
+        .update({ status: 'Confirmed', confirmed_time: timeStr })
+        .eq('id', id);
+
+      if (error) {
+        alert("Gagal mengesahkan: " + error.message);
+      } else {
+        await fetchCloudData();
       }
     }
-
-    renderTvDashboard();
   </script>
 </body>
 </html>
