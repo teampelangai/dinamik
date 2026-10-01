@@ -205,7 +205,7 @@
   <script>
     //=== 1. KONFIGURASI SUPABASE & ONESIGNAL ===
     const SUPABASE_URL = 'https://jzqirxombshcmbatbmso.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6cWlyeG9tYnNoY21iYXRibXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzI0MDEsImV4cCI6MjEwNjM0ODQwMX0.MXAlafZGrBOjRMYCqWU4lVO2mYf6Au0kktiQOLlcO68';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6cWlyeG9tYnSh21iYXRibXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzI0MDEsImV4cCI6MjEwNjM0ODQwMX0.MXAlafZGrBOjRMYCqWU4lVO2mYf6Au0kktiQOLlcO68';
     
     const ONESIGNAL_APP_ID = "2fb53561-b4ba-4d25-a42c-88ea76ce83c8";
     const ONESIGNAL_REST_API_KEY = "os_v2_app_f62tkynuxjgsljbmrdvhntudzafzdl3y7niuagvgt5ybrqkt7biorixqcbbz4dfqurauz5wnn7fflfs47vqwpixnnfovk4zodkbnaci";
@@ -269,43 +269,46 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-// Fungsi Khas Penghantaran Notifikasi REST API (Direct OneSignal Endpoint)
-async function hantarNotifikasiRelief(tajuk, mesej) {
-  console.log("Memulakan penghantaran notifikasi...");
+    // Fungsi Khas Penghantaran Notifikasi REST API (Mengguna Cloudflare Worker)
+    async function hantarNotifikasiRelief(tajuk, mesej) {
+      console.log("Memulakan penghantaran notifikasi...");
 
-  const payload = {
-    app_id: ONESIGNAL_APP_ID,
-    included_segments: ['Subscribed Users'],
-    headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
-    contents: { en: mesej || "Jadual ganti / relief telah dikemas kini.", ms: mesej || "Jadual ganti / relief telah dikemas kini." },
-    url: "https://teampelangai.github.io/dinamik/"
-  };
+      const payload = {
+        app_id: ONESIGNAL_APP_ID,
+        included_segments: ['Subscribed Users'],
+        headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
+        contents: { en: mesej || "Jadual ganti / relief telah dikemas kini.", ms: mesej || "Jadual ganti / relief telah dikemas kini." },
+        url: "https://teampelangai.github.io/dinamik/"
+      };
 
-  try {
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'accept': 'application/json',
-        'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+      // URL Cloudflare Worker Khas Anda
+      const proxyUrl = 'https://onesignal-proxy.teampelangai.workers.dev/';
 
-    const data = await response.json();
-    console.log("Respon OneSignal:", data);
+      try {
+        const response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-    if (data.id) {
-      alert("🚀 BERJAYA! Mesej notifikasi telah dihantar ke pelayan OneSignal.\nID: " + data.id);
-    } else if (data.errors) {
-      alert("⚠️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
+        const data = await response.json();
+        console.log("Respon OneSignal:", data);
+
+        if (data.id) {
+          alert("🚀 BERJAYA! Mesej notifikasi telah dihantar ke pelayan OneSignal.\nID: " + data.id);
+        } else if (data.errors) {
+          alert("⚠️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
+        }
+      } catch (err) {
+        console.error("Ralat Penghantaran:", err);
+        alert("❌ Ralat Sambungan: " + err.message);
+      }
     }
-  } catch (err) {
-    console.error("Ralat Penghantaran:", err);
-    alert("❌ Ralat Sambungan: " + err.message);
-  }
-}
+
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
       document.getElementById('viewMobile').classList.add('hidden');
