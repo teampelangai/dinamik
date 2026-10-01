@@ -273,9 +273,9 @@
     async function hantarNotifikasiRelief(tajuk, mesej) {
       console.log("Memulakan penghantaran notifikasi...");
 
-      const payload = {
+    const payload = {
         app_id: ONESIGNAL_APP_ID,
-        included_segments: ['Subscribed Users'],
+        included_segments: ['Total Subscriptions'],
         headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
         contents: { en: mesej || "Jadual ganti / relief telah dikemas kini.", ms: mesej || "Jadual ganti / relief telah dikemas kini." },
         url: "https://teampelangai.github.io/dinamik/"
