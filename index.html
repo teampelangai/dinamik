@@ -13,27 +13,27 @@
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-  // 1. Inisialisasi & Pendengar Pendaftaran Automatik
+  // 1. Inisialisasi OneSignal dengan Laluan GitHub Pages (/dinamik/)
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
       allowLocalhostAsSecureOrigin: true,
+      serviceWorkerParam: { scope: "/dinamik/" },
       serviceWorkerPath: "sw.js"
     });
 
-    // Mendengar perubahan status pendaftaran secara terus di latar belakang
+    // Dengar perubahan status pendaftaran secara automatik
     OneSignal.User.PushSubscription.addEventListener("change", function(event) {
       if (event.current.id) {
-        console.log("Pendaftaran berjaya! ID:", event.current.id);
-        alert("✅ BERJAYA LENGKAP!\nPeranti anda telah didaftarkan ke OneSignal.\nID: " + event.current.id);
+        alert("✅ BERJAYA LENGKAP!\nID Peranti Anda: " + event.current.id);
       }
     });
   });
 
-  // 2. Fungsi Pemicu dari Butang HTML
+  // 2. Fungsi Butang Pendaftaran
   async function requestNotificationPermission() {
     if (!window.OneSignalDeferred) {
-      alert("⏳ SDK sedang dimuatkan. Sila cuba sebentar lagi.");
+      alert("⏳ SDK OneSignal sedang dimuatkan. Sila tunggu sebentar...");
       return;
     }
 
@@ -42,16 +42,17 @@
         // Minta kebenaran pelayar
         await OneSignal.Notifications.requestPermission();
         
-        // Semak jika ID sudah wujud
-        const currentId = OneSignal.User.PushSubscription.id;
-        
-        if (currentId) {
-          alert("✅ PERANTI SUDAH BERDAFTAR!\nID: " + currentId);
+        // Paksa optIn
+        await OneSignal.User.PushSubscription.optIn();
+
+        const subId = OneSignal.User.PushSubscription.id;
+        if (subId) {
+          alert("✅ BERJAYA! Peranti anda berdaftar.\nID: " + subId);
         } else {
-          alert("🔄 Kebenaran diberikan. Pendaftaran peranti sedang diproses di latar belakang...");
+          alert("🔄 Pendaftaran sedang diselaraskan dengan pelayan OneSignal... Sila tunggu 3 saat.");
         }
       } catch (err) {
-        alert("❌ Ralat pendaftaran: " + err.message);
+        alert("❌ Ralat OneSignal: " + err.message);
       }
     });
   }
