@@ -8,16 +8,54 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- OneSignal Web Push SDK -->
+<!-- OneSignal Web Push SDK -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
+    
+    // 1. Inisialisasi OneSignal
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
         appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
         allowLocalhostAsSecureOrigin: true,
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js"
       });
     });
+
+    // 2. Fungsi yang dipanggil apabila butang "Aktifkan Push Notification" ditekan
+    async function requestNotificationPermission() {
+      alert("🔔 Memproses kebenaran Push Notification...");
+
+      try {
+        if (!window.OneSignalDeferred) {
+          alert("⏳ SDK OneSignal belum dimuatkan. Sila refresh halaman.");
+          return;
+        }
+
+        OneSignalDeferred.push(async function(OneSignal) {
+          // Minta kebenaran pelayar
+          await OneSignal.Notifications.requestPermission();
+
+          // Daftarkan Token ke OneSignal
+          if (OneSignal.User && OneSignal.User.PushSubscription) {
+            await OneSignal.User.PushSubscription.optIn();
+            const subscriptionId = OneSignal.User.PushSubscription.id;
+
+            if (subscriptionId) {
+              alert("✅ BERJAYA! Peranti anda kini berdaftar di OneSignal.\nID: " + subscriptionId);
+            } else {
+              alert("✅ Kebenaran dibenarkan! Sila refresh halaman di telefon anda.");
+            }
+          } else {
+            alert("✅ Kebenaran Notifikasi telah diaktifkan!");
+          }
+        });
+      } catch (err) {
+        console.error("Ralat OneSignal:", err);
+        alert("❌ Ralat pengaktifan: " + err.message);
+      }
+    }
   </script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
