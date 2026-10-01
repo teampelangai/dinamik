@@ -13,19 +13,27 @@
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-  // 1. Inisialisasi OneSignal
+  // 1. Inisialisasi & Pendengar Pendaftaran Automatik
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
       allowLocalhostAsSecureOrigin: true,
       serviceWorkerPath: "sw.js"
     });
+
+    // Mendengar perubahan status pendaftaran secara terus di latar belakang
+    OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+      if (event.current.id) {
+        console.log("Pendaftaran berjaya! ID:", event.current.id);
+        alert("✅ BERJAYA LENGKAP!\nPeranti anda telah didaftarkan ke OneSignal.\nID: " + event.current.id);
+      }
+    });
   });
 
-  // 2. Fungsi Butang Pendaftaran
+  // 2. Fungsi Pemicu dari Butang HTML
   async function requestNotificationPermission() {
     if (!window.OneSignalDeferred) {
-      alert("⏳ SDK OneSignal sedang dimuatkan... Sila cuba sebentar lagi.");
+      alert("⏳ SDK sedang dimuatkan. Sila cuba sebentar lagi.");
       return;
     }
 
@@ -34,16 +42,16 @@
         // Minta kebenaran pelayar
         await OneSignal.Notifications.requestPermission();
         
-        // Ambil ID Subscription jika ada
-        const subId = OneSignal.User.PushSubscription.id;
+        // Semak jika ID sudah wujud
+        const currentId = OneSignal.User.PushSubscription.id;
         
-        if (subId) {
-          alert("✅ BERJAYA! Peranti anda berdaftar.\nID: " + subId);
+        if (currentId) {
+          alert("✅ PERANTI SUDAH BERDAFTAR!\nID: " + currentId);
         } else {
-          alert("✅ Kebenaran Notifikasi Diberikan!\nSila muat semula (refresh) halaman di telefon.");
+          alert("🔄 Kebenaran diberikan. Pendaftaran peranti sedang diproses di latar belakang...");
         }
       } catch (err) {
-        alert("❌ Ralat: " + err.message);
+        alert("❌ Ralat pendaftaran: " + err.message);
       }
     });
   }
