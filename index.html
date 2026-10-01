@@ -269,24 +269,22 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
- // Fungsi Khas Penghantaran Notifikasi REST API (Guna Proxy Baharu - Tiada 403)
+// Fungsi Khas Penghantaran Notifikasi REST API (Direct OneSignal Endpoint)
 async function hantarNotifikasiRelief(tajuk, mesej) {
-  console.log("Memulakan penghantaran notifikasi ujian...");
+  console.log("Memulakan penghantaran notifikasi...");
 
   const payload = {
     app_id: ONESIGNAL_APP_ID,
     included_segments: ['Subscribed Users'],
-    headings: { en: tajuk || "📢 UJIAN NOTIFIKASI", ms: tajuk || "📢 UJIAN NOTIFIKASI" },
-    contents: { en: mesej || "Ini adalah ujian notifikasi E-Relief.", ms: mesej || "Ini adalah ujian notifikasi E-Relief." },
+    headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
+    contents: { en: mesej || "Jadual ganti / relief telah dikemas kini.", ms: mesej || "Jadual ganti / relief telah dikemas kini." },
     url: "https://teampelangai.github.io/dinamik/"
   };
 
-  // Menggunakan ThingProxy untuk elak isu 403 Forbidden
-  const proxyUrl = 'https://thingproxy.freeboard.io/fetch/' + 'https://onesignal.com/api/v1/notifications';
-
   try {
-    const response = await fetch(proxyUrl, {
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
+      mode: 'cors',
       headers: {
         'accept': 'application/json',
         'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
@@ -299,16 +297,15 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     console.log("Respon OneSignal:", data);
 
     if (data.id) {
-      alert("🚀 BERJAYA! Mesej ujian telah dihantar ke pelayan OneSignal.\nID Mesej: " + data.id);
+      alert("🚀 BERJAYA! Mesej notifikasi telah dihantar ke pelayan OneSignal.\nID: " + data.id);
     } else if (data.errors) {
-      alert("⚠️️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
+      alert("⚠️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
     }
   } catch (err) {
     console.error("Ralat Penghantaran:", err);
     alert("❌ Ralat Sambungan: " + err.message);
   }
 }
-
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
       document.getElementById('viewMobile').classList.add('hidden');
