@@ -256,18 +256,23 @@
       }
     }
 
-    // Fungsi Hantar Push Notification ke Lockscreen
+   // Fungsi Hantar Push Notification ke Lockscreen (Kemaskini Format v2)
     async function sendGlobalPushNotification(title, message) {
+      // Menyokong format Key / Basic bergantung pada jenis API Key
+      const authHeader = ONESIGNAL_REST_API_KEY.startsWith("os_v2_") 
+        ? `Basic ${ONESIGNAL_REST_API_KEY}` 
+        : `Key ${ONESIGNAL_REST_API_KEY}`;
+
       const options = {
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
+          'Authorization': authHeader,
           'content-type': 'application/json'
         },
         body: JSON.stringify({
           app_id: ONESIGNAL_APP_ID,
-          included_segments: ['All'],
+          included_segments: ['Subscribed Users'], // Ditukar dari 'All' ke 'Subscribed Users'
           headings: { en: title, ms: title },
           contents: { en: message, ms: message },
           icon: 'https://cdn-icons-png.flaticon.com/512/3588/3588640.png'
@@ -278,8 +283,16 @@
         const response = await fetch('https://onesignal.com/api/v1/notifications', options);
         const data = await response.json();
         console.log("OneSignal Push Result:", data);
+
+        // PAPARAN DIAGNOSIS: Jika ada ralat dari OneSignal, ia akan terus keluar di skrin PC
+        if (data.errors) {
+          alert("❌ Ralat OneSignal API: " + JSON.stringify(data.errors));
+        } else if (data.id) {
+          console.log("✅ Push Notification berjaya dihantar ke OneSignal!");
+        }
       } catch (err) {
         console.error("Gagal hantar Push Notification:", err);
+        alert("Ralat Rangkaian OneSignal: " + err.message);
       }
     }
 
