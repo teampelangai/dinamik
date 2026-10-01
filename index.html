@@ -236,19 +236,30 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-    async function requestNotificationPermission() {
+async function requestNotificationPermission() {
       try {
-        if ('OneSignal' in window) {
+        // Semak jika OneSignal SDK wujud
+        if (window.OneSignalDeferred) {
           window.OneSignalDeferred.push(async function(OneSignal) {
+            // Semak status kebenaran semasa
+            const currentPermission = OneSignal.Notifications.permission;
+            
+            if (Notification.permission === 'denied') {
+              alert("⚠️ Kebenaran notifikasi disekat oleh pelayar anda.\n\nSila tekan ikon Mangga/Kunci di baris URL di atas, pilih 'Site Settings' -> 'Notifications' -> tukar ke 'Allow'.");
+              return;
+            }
+
+            // Minta kebenaran notifikasi dari OneSignal
             await OneSignal.Notifications.requestPermission();
+
             if (OneSignal.Notifications.permission) {
               alert("✅ Notifikasi Web Push (OneSignal) berjaya diaktifkan!");
             } else {
-              alert("❌ Akses notifikasi ditolak/diblok.");
+              alert("ℹ️ Akses notifikasi tidak diaktifkan.");
             }
           });
         } else {
-          alert("SDK OneSignal sedang dimuatkan, sila cuba sebentar lagi.");
+          alert("⏳ SDK OneSignal sedang dimuatkan, sila muat semula (refresh) halaman dan cuba lagi.");
         }
       } catch (error) {
         console.error("Ralat OneSignal Permission:", error);
