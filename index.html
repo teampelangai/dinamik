@@ -269,7 +269,7 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-  // Fungsi Khas Penghantaran Notifikasi REST API (Sudah Dibaiki & Aktif)
+ // Fungsi Khas Penghantaran Notifikasi REST API (Guna Proxy Baharu - Tiada 403)
 async function hantarNotifikasiRelief(tajuk, mesej) {
   console.log("Memulakan penghantaran notifikasi ujian...");
 
@@ -281,8 +281,8 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     url: "https://teampelangai.github.io/dinamik/"
   };
 
-  // Menggunakan CORS Proxy rasmi yang menyokong kaedah POST & Header Authorization
-  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://onesignal.com/api/v1/notifications');
+  // Menggunakan ThingProxy untuk elak isu 403 Forbidden
+  const proxyUrl = 'https://thingproxy.freeboard.io/fetch/' + 'https://onesignal.com/api/v1/notifications';
 
   try {
     const response = await fetch(proxyUrl, {
@@ -301,7 +301,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     if (data.id) {
       alert("🚀 BERJAYA! Mesej ujian telah dihantar ke pelayan OneSignal.\nID Mesej: " + data.id);
     } else if (data.errors) {
-      alert("⚠️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
+      alert("⚠️️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
     }
   } catch (err) {
     console.error("Ralat Penghantaran:", err);
