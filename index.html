@@ -17,7 +17,6 @@
     await OneSignal.init({
       appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
       allowLocalhostAsSecureOrigin: true,
-      siteName: "E-Relief System",
       serviceWorkerParam: { scope: "/dinamik/" },
       serviceWorkerPath: "sw.js"
     });
@@ -30,29 +29,21 @@
     });
   });
 
-  // Fungsi dipanggil apabila butang "Aktifkan Push Notification" ditekan
   async function requestNotificationPermission() {
-    if (!window.OneSignalDeferred) {
-      alert("⏳ SDK sedang dimuatkan...");
-      return;
-    }
+    if (!window.OneSignalDeferred) return;
 
     OneSignalDeferred.push(async function(OneSignal) {
       try {
-        // Minta kebenaran pelayar
         await OneSignal.Notifications.requestPermission();
-        
-        // Paksa optIn pendaftaran
         await OneSignal.User.PushSubscription.optIn();
-
+        
         const currentId = OneSignal.User.PushSubscription.id;
         if (currentId) {
           alert("✅ PERANTI SUDAH BERDAFTAR!\nID: " + currentId);
         } else {
-          alert("🔄 Kebenaran diberikan! Token peranti sedang dihantar ke pelayan OneSignal...");
+          alert("🔄 Menghantar token peranti ke OneSignal...");
         }
       } catch (err) {
-        console.error("Ralat:", err);
         alert("❌ Ralat: " + err.message);
       }
     });
