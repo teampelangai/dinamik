@@ -22,38 +22,53 @@
       serviceWorkerPath: "sw.js"
     });
   });
-
-  // 2. Fungsi Pendaftaran Dipanggil Butang
+// 2. Fungsi Pendaftaran Dipanggil Butang (Versi Dikemaskini)
   async function requestNotificationPermission() {
-    alert("🔔 Memproses kebenaran Push Notification...");
+    console.log("Memulakan pendaftaran OneSignal...");
+    
+    // Alert terus untuk mengesahkan butang berfungsi
+    alert("🔔 Memproses status Push Notification...");
 
-    if (!window.OneSignalDeferred) {
-      alert("⏳ SDK OneSignal belum dimuatkan. Sila refresh halaman.");
-      return;
-    }
+    try {
+      if (!window.OneSignalDeferred) {
+        alert("⏳ SDK OneSignal belum siap dimuatkan. Sila tunggu 2 saat dan cuba lagi.");
+        return;
+      }
 
-    OneSignalDeferred.push(async function(OneSignal) {
-      try {
-        // Minta kebenaran pelayar
-        await OneSignal.Notifications.requestPermission();
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        // 1. Semak status kebenaran semasa
+        const currentPermission = OneSignal.Notifications.permission;
+        console.log("Status kebenaran semasa:", currentPermission);
 
-        // Paksa opt-in ke dalam Push Subscription
+        // 2. Jika belum minta, minta kebenaran pelayar
+        if (!currentPermission) {
+          await OneSignal.Notifications.requestPermission();
+        }
+
+        // 3. Paksa langganan (Opt-In) ke OneSignal
         await OneSignal.User.PushSubscription.optIn();
 
-        // Semak ID Subscription
-        const subscriptionId = OneSignal.User.PushSubscription.id;
+        // 4. Dapatkan Subscription ID
+        const subId = OneSignal.User.PushSubscription.id;
 
-        if (subscriptionId) {
-          alert("✅ BERJAYA! Peranti anda kini berdaftar di OneSignal.\nID: " + subscriptionId);
+        if (subId) {
+          alert("✅ BERJAYA! Peranti anda kini sah berdaftar.\nID Peranti: " + subId);
         } else {
-          alert("✅ Kebenaran dibenarkan! Sila refresh halaman di telefon untuk mengaktifkan pendaftaran.");
+          // Jika ID belum sedia serta-merta, dengar perubahan status ID
+          OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+            if (event.current.id) {
+              alert("✅ BERJAYA LENGKAP!\nID Peranti: " + event.current.id);
+            }
+          });
+          alert("✅ Kebenaran Notifikasi diaktifkan! Mengemaskini pendaftaran peranti...");
         }
-      } catch (err) {
-        console.error("Ralat OneSignal:", err);
-        alert("❌ Ralat pengaktifan: " + err.message);
-      }
-    });
+      });
+    } catch (err) {
+      console.error("Ralat pendaftaran:", err);
+      alert("❌ Ralat: " + err.message);
+    }
   }
+
 </script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
