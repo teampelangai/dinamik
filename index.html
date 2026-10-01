@@ -269,7 +269,7 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-// Fungsi Khas Penghantaran Notifikasi REST API (Menggunakan ID Peranti Terus)
+// Fungsi Khas Penghantaran Notifikasi REST API (Global Segment)
 async function hantarNotifikasiRelief(tajuk, mesej) {
   const options = {
     method: 'POST',
@@ -280,8 +280,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
-      // Sasarkan terus ke Subscription ID telefon bimbit anda
-      include_subscription_ids: ['9e481a96-bc79-431c-aee5-ba2c4425582f'],
+      included_segments: ['Subscribed Users'],
       headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
       contents: { en: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda.", ms: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda." },
       url: "https://teampelangai.github.io/dinamik/"
@@ -296,9 +295,9 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     console.log("Status OneSignal:", data);
 
     if (data.id) {
-      alert("🚀 BERJAYA! Notifikasi telah dihantar ke telefon bimbit.");
+      alert("🚀 BERJAYA! Mesej telah dihantar ke pelayan OneSignal.");
     } else if (data.errors) {
-      alert("⚠️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
+      alert("⚠️️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
     }
   } catch (err) {
     console.error("Ralat API:", err);
