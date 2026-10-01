@@ -8,52 +8,48 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<!-- OneSignal Web Push SDK -->
+<!-- OneSignal Web Push SDK v16 -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-  // 1. Inisialisasi OneSignal dengan Laluan GitHub Pages (/dinamik/)
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
       allowLocalhostAsSecureOrigin: true,
-      serviceWorkerParam: { scope: "/dinamik/" },
-      serviceWorkerPath: "sw.js"
+      serviceWorkerPath: "sw.js",
+      promptOptions: {
+        slidedown: {
+          prompts: [
+            {
+              type: "push",
+              autoPrompt: true,
+              text: {
+                actionMessage: "Adakah anda ingin menerima notifikasi terus Jadual Relief?",
+                acceptButton: "Benarkan",
+                cancelButton: "Nanti"
+              }
+            }
+          ]
+        }
+      }
     });
 
-    // Dengar perubahan status pendaftaran secara automatik
+    // Dengarkan pendaftaran berjaya secara automatik
     OneSignal.User.PushSubscription.addEventListener("change", function(event) {
       if (event.current.id) {
-        alert("✅ BERJAYA LENGKAP!\nID Peranti Anda: " + event.current.id);
+        alert("🎉 BERJAYA! Peranti anda sah berdaftar di OneSignal.\nID: " + event.current.id);
       }
     });
   });
 
-  // 2. Fungsi Butang Pendaftaran
+  // Fungsi Butang Manual jika pengguna ingin tekan butang
   async function requestNotificationPermission() {
-    if (!window.OneSignalDeferred) {
-      alert("⏳ SDK OneSignal sedang dimuatkan. Sila tunggu sebentar...");
-      return;
-    }
+    if (!window.OneSignalDeferred) return;
 
     OneSignalDeferred.push(async function(OneSignal) {
-      try {
-        // Minta kebenaran pelayar
-        await OneSignal.Notifications.requestPermission();
-        
-        // Paksa optIn
-        await OneSignal.User.PushSubscription.optIn();
-
-        const subId = OneSignal.User.PushSubscription.id;
-        if (subId) {
-          alert("✅ BERJAYA! Peranti anda berdaftar.\nID: " + subId);
-        } else {
-          alert("🔄 Pendaftaran sedang diselaraskan dengan pelayan OneSignal... Sila tunggu 3 saat.");
-        }
-      } catch (err) {
-        alert("❌ Ralat OneSignal: " + err.message);
-      }
+      // Tampilkan slidedown prompt binaan OneSignal
+      await OneSignal.Slidedown.promptPush();
     });
   }
 </script>
