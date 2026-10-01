@@ -17,39 +17,44 @@
     await OneSignal.init({
       appId: "2fb53561-b4ba-4d25-a42c-88ea76ce83c8",
       allowLocalhostAsSecureOrigin: true,
-      serviceWorkerPath: "sw.js",
-      promptOptions: {
-        slidedown: {
-          prompts: [
-            {
-              type: "push",
-              autoPrompt: true,
-              text: {
-                actionMessage: "Adakah anda ingin menerima notifikasi terus Jadual Relief?",
-                acceptButton: "Benarkan",
-                cancelButton: "Nanti"
-              }
-            }
-          ]
-        }
-      }
+      siteName: "E-Relief System",
+      serviceWorkerParam: { scope: "/dinamik/" },
+      serviceWorkerPath: "sw.js"
     });
 
-    // Dengarkan pendaftaran berjaya secara automatik
+    // Dengarkan pendaftaran dan paparkan ID peranti sebenar
     OneSignal.User.PushSubscription.addEventListener("change", function(event) {
       if (event.current.id) {
-        alert("🎉 BERJAYA! Peranti anda sah berdaftar di OneSignal.\nID: " + event.current.id);
+        alert("🎉 BERJAYA TERTINGGI!\nPeranti anda telah berdaftar.\nID Subscription: " + event.current.id);
       }
     });
   });
 
-  // Fungsi Butang Manual jika pengguna ingin tekan butang
+  // Fungsi dipanggil apabila butang "Aktifkan Push Notification" ditekan
   async function requestNotificationPermission() {
-    if (!window.OneSignalDeferred) return;
+    if (!window.OneSignalDeferred) {
+      alert("⏳ SDK sedang dimuatkan...");
+      return;
+    }
 
     OneSignalDeferred.push(async function(OneSignal) {
-      // Tampilkan slidedown prompt binaan OneSignal
-      await OneSignal.Slidedown.promptPush();
+      try {
+        // Minta kebenaran pelayar
+        await OneSignal.Notifications.requestPermission();
+        
+        // Paksa optIn pendaftaran
+        await OneSignal.User.PushSubscription.optIn();
+
+        const currentId = OneSignal.User.PushSubscription.id;
+        if (currentId) {
+          alert("✅ PERANTI SUDAH BERDAFTAR!\nID: " + currentId);
+        } else {
+          alert("🔄 Kebenaran diberikan! Token peranti sedang dihantar ke pelayan OneSignal...");
+        }
+      } catch (err) {
+        console.error("Ralat:", err);
+        alert("❌ Ralat: " + err.message);
+      }
     });
   }
 </script>
