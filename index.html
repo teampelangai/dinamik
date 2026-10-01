@@ -280,7 +280,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
-      included_segments: ['Subscribed Users'],
+      include_subscription_ids: ['28c5a222-546a-4edd-916a-92895deefc7c'],
       headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
       contents: { en: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda.", ms: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda." },
       url: "https://teampelangai.github.io/dinamik/"
