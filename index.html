@@ -269,40 +269,43 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-    // Fungsi Khas Penghantaran Notifikasi REST API (OneSignal v16)
-    async function hantarNotifikasiRelief(tajuk, mesej) {
-      const options = {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          app_id: ONESIGNAL_APP_ID,
-          included_segments: ['Subscribed Users'],
-          headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
-          contents: { en: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda.", ms: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda." },
-          url: "https://teampelangai.github.io/dinamik/"
-        })
-      };
+  // Fungsi Khas Penghantaran Notifikasi REST API (Dengan CORS Proxy)
+async function hantarNotifikasiRelief(tajuk, mesej) {
+  const options = {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      app_id: ONESIGNAL_APP_ID,
+      included_segments: ['Subscribed Users'],
+      headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
+      contents: { en: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda.", ms: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda." },
+      url: "https://teampelangai.github.io/dinamik/"
+    })
+  };
 
-      try {
-        const response = await fetch('https://onesignal.com/api/v1/notifications', options);
-        const data = await response.json();
-        console.log("Status OneSignal:", data);
+  // Gunakan Proxy URL untuk melepasi sekatan CORS browser
+  const targetUrl = 'https://onesignal.com/api/v1/notifications';
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
 
-        if (data.id) {
-          alert("🚀 BERJAYA! Notifikasi telah dihantar ke telefon bimbit.");
-        } else if (data.errors) {
-          alert("⚠️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
-        }
-      } catch (err) {
-        console.error("Ralat API:", err);
-        alert("❌ Ralat sambungan API: " + err.message);
-      }
+  try {
+    const response = await fetch(proxyUrl, options);
+    const data = await response.json();
+    console.log("Status OneSignal:", data);
+
+    if (data.id) {
+      alert("🚀 BERJAYA! Notifikasi telah dihantar ke telefon bimbit.");
+    } else if (data.errors) {
+      alert("⚠️️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
     }
-
+  } catch (err) {
+    console.error("Ralat API:", err);
+    alert("❌ Ralat sambungan API: " + err.message);
+  }
+}
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
       document.getElementById('viewMobile').classList.add('hidden');
