@@ -269,42 +269,45 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-    // Fungsi Khas Penghantaran Notifikasi REST API
-    async function hantarNotifikasiRelief(tajuk, mesej) {
-      const payload = {
-        app_id: ONESIGNAL_APP_ID,
-        included_segments: ['Subscribed Users'],
-        headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
-        contents: { en: mesej || "Jadual ganti / relief telah dikemas kini.", ms: mesej || "Jadual ganti / relief telah dikemas kini." },
-        url: "https://teampelangai.github.io/dinamik/"
-      };
+  // Fungsi Khas Penghantaran Notifikasi REST API (Sudah Dibaiki & Aktif)
+async function hantarNotifikasiRelief(tajuk, mesej) {
+  console.log("Memulakan penghantaran notifikasi ujian...");
 
-      const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://onesignal.com/api/v1/notifications');
+  const payload = {
+    app_id: ONESIGNAL_APP_ID,
+    included_segments: ['Subscribed Users'],
+    headings: { en: tajuk || "📢 UJIAN NOTIFIKASI", ms: tajuk || "📢 UJIAN NOTIFIKASI" },
+    contents: { en: mesej || "Ini adalah ujian notifikasi E-Relief.", ms: mesej || "Ini adalah ujian notifikasi E-Relief." },
+    url: "https://teampelangai.github.io/dinamik/"
+  };
 
-      try {
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
-            'content-type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+  // Menggunakan CORS Proxy rasmi yang menyokong kaedah POST & Header Authorization
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://onesignal.com/api/v1/notifications');
 
-        const data = await response.json();
-        console.log("Status OneSignal:", data);
+  try {
+    const response = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-        if (data.id) {
-          alert("🚀 BERJAYA! Notifikasi telah dihantar ke pelayan OneSignal.");
-        } else if (data.errors) {
-          alert("⚠️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
-        }
-      } catch (err) {
-        console.error("Ralat API:", err);
-        alert("❌ Ralat sambungan API: " + err.message);
-      }
+    const data = await response.json();
+    console.log("Respon OneSignal:", data);
+
+    if (data.id) {
+      alert("🚀 BERJAYA! Mesej ujian telah dihantar ke pelayan OneSignal.\nID Mesej: " + data.id);
+    } else if (data.errors) {
+      alert("⚠️ Ralat OneSignal API:\n" + JSON.stringify(data.errors));
     }
+  } catch (err) {
+    console.error("Ralat Penghantaran:", err);
+    alert("❌ Ralat Sambungan: " + err.message);
+  }
+}
 
     function switchTab(tabName) {
       document.getElementById('viewTv').classList.add('hidden');
