@@ -238,28 +238,23 @@
 
 async function requestNotificationPermission() {
       try {
-        // Semak jika OneSignal SDK wujud
         if (window.OneSignalDeferred) {
           window.OneSignalDeferred.push(async function(OneSignal) {
-            // Semak status kebenaran semasa
-            const currentPermission = OneSignal.Notifications.permission;
-            
-            if (Notification.permission === 'denied') {
-              alert("⚠️ Kebenaran notifikasi disekat oleh pelayar anda.\n\nSila tekan ikon Mangga/Kunci di baris URL di atas, pilih 'Site Settings' -> 'Notifications' -> tukar ke 'Allow'.");
-              return;
-            }
-
-            // Minta kebenaran notifikasi dari OneSignal
+            // 1. Minta kebenaran Notifikasi pelayar
             await OneSignal.Notifications.requestPermission();
+            
+            // 2. Paksa pendaftaran Subscription ke OneSignal Server
+            await OneSignal.User.PushSubscription.optIn();
 
-            if (OneSignal.Notifications.permission) {
-              alert("✅ Notifikasi Web Push (OneSignal) berjaya diaktifkan!");
+            const isSubscribed = OneSignal.User.PushSubscription.id;
+            if (isSubscribed) {
+              alert("✅ Berjaya! Peranti anda kini berdaftar di OneSignal.\nID: " + isSubscribed);
             } else {
-              alert("ℹ️ Akses notifikasi tidak diaktifkan.");
+              alert("✅ Kebenaran dibenarkan. Sila muat semula (refresh) halaman untuk melengkapkan pendaftaran.");
             }
           });
         } else {
-          alert("⏳ SDK OneSignal sedang dimuatkan, sila muat semula (refresh) halaman dan cuba lagi.");
+          alert("⏳ SDK OneSignal belum bersedia, sila muat semula halaman.");
         }
       } catch (error) {
         console.error("Ralat OneSignal Permission:", error);
