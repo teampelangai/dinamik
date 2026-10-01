@@ -269,7 +269,7 @@
         .catch(err => console.log('SW Registration error', err));
     }
 
-  // Fungsi Khas Penghantaran Notifikasi REST API (Dengan CORS Proxy)
+// Fungsi Khas Penghantaran Notifikasi REST API (Menggunakan ID Peranti Terus)
 async function hantarNotifikasiRelief(tajuk, mesej) {
   const options = {
     method: 'POST',
@@ -280,6 +280,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
+      // Sasarkan terus ke Subscription ID telefon bimbit anda
       include_subscription_ids: ['9e481a96-bc79-431c-aee5-ba2c4425582f'],
       headings: { en: tajuk || "📢 JADUAL RELIEF BAHARU", ms: tajuk || "📢 JADUAL RELIEF BAHARU" },
       contents: { en: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda.", ms: mesej || "Jadual ganti / relief telah dikemas kini. Sila semak jadual anda." },
@@ -287,9 +288,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     })
   };
 
-  // Gunakan Proxy URL untuk melepasi sekatan CORS browser
-  const targetUrl = 'https://onesignal.com/api/v1/notifications';
-  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://onesignal.com/api/v1/notifications');
 
   try {
     const response = await fetch(proxyUrl, options);
@@ -299,7 +298,7 @@ async function hantarNotifikasiRelief(tajuk, mesej) {
     if (data.id) {
       alert("🚀 BERJAYA! Notifikasi telah dihantar ke telefon bimbit.");
     } else if (data.errors) {
-      alert("⚠️️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
+      alert("⚠️ Gagal hantar notifikasi: " + JSON.stringify(data.errors));
     }
   } catch (err) {
     console.error("Ralat API:", err);
